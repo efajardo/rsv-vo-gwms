@@ -116,7 +116,7 @@ class GfactoryQueryingLocalProbe(rsvprobe.RSVProbe):
         constraint = 'MyType=?="glidefactory" && ' + newconstraint
         self.add_message("constraint for factory querying: %s" % constraint)
         self.add_message("Gfactory queried: %s" % self.gfactory)
-        results = coll.query(htcondor.AdTypes.Any, constraint, ['GLIDEIN_Site', 'GLIDEIN_ResourceName', 'GLIDEIN_Gatekeeper', 'GLIDEIN_GridType'])
+        results = coll.query(htcondor.AdTypes.Any, constraint, ['GLIDEIN_Site', 'GLIDEIN_ResourceName', 'GLIDEIN_Gatekeeper', 'GLIDEIN_GridType', 'GLIDEIN_GlobusRSL'])
         # Parsing the results into a dictionary with the CE's info
         condorceprog = re.compile("(.*) (.*)")
         creamceprog = re.compile("(.*):([0-9]*)/(.*)")
@@ -137,6 +137,7 @@ class GfactoryQueryingLocalProbe(rsvprobe.RSVProbe):
             elif 'nordugrid' in result["GLIDEIN_GridType"]:
                 gatekeeper["grid_type"] = 'nordugrid'
                 gatekeeper["host"] = result["GLIDEIN_Gatekeeper"]
+                gatekeeper["globus_rsl"] = result["GLIDEIN_GlobusRSL"]
             #nordugrid resource name has no jobmanager or port
             if gatekeeper['grid_type'] in ['cream', 'gram']:
                 m = creamceprog.match(gatekeeper["grid_resource"])
@@ -164,6 +165,8 @@ class GfactoryQueryingLocalProbe(rsvprobe.RSVProbe):
                  Config.set(metric, 'jobmanager', self.gateKeepers[host]['jobmanager'])
             if self.gateKeepers[host]['grid_type'] in ['htcondor-ce']:
                 Config.set(metric, 'htcondor-ce-collector', self.gateKeepers[host]['htcondor-ce-collector'])
+            if self.gateKeepers[host]['grid_type'] == "nordugrid":
+                Config.set(metric, 'globus_rsl', self.gateKeepers[host]['globus_rsl'])
             Config.write(cfgfile)
             cfgfile.close()
             
